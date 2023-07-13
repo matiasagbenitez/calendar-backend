@@ -6,12 +6,13 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 const { crearUsuario, loginUsuario, revalidarToken } = require('../controllers/auth');
 const { validarCampos } = require('../middlewares/validar-campos');
+const { validarJWT } = require('../middlewares/validar-jwt');
 
 const router = Router();
 
 router.post(
     '/register',
-    [   
+    [
         // Middlewares
         check('name', 'El nombre es obligatorio').not().isEmpty(),
         check('email', 'El email es obligatorio').isEmail(),
@@ -22,7 +23,7 @@ router.post(
 );
 
 router.post(
-    '/login', 
+    '/login',
     [
         // Middlewares
         check('email', 'El email es obligatorio').isEmail(),
@@ -32,6 +33,6 @@ router.post(
     loginUsuario
 );
 
-router.get('/renew', revalidarToken);
+router.get('/renew', validarJWT, revalidarToken);
 
 module.exports = router;
