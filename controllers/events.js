@@ -13,13 +13,16 @@ const obtenerEventos = async (req, res = response) => {
 const crearEvento = async (req, res = response) => {
     const evento = new Evento(req.body);
     try {
+
         evento.user = req.uid;
+        
         const eventoCreado = await evento.save();
         res.status(201).json({
             ok: true,
             msg: 'Evento creado.',
             evento: eventoCreado
         });
+
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -33,7 +36,7 @@ const editarEvento = async (req, res = response) => {
     const eventoId = req.params.id;
     try {
         const evento = await Evento.findById(eventoId);
-        
+
         if (!evento) {
             return res.status(404).json({
                 ok: false,
@@ -53,12 +56,15 @@ const editarEvento = async (req, res = response) => {
             ...req.body,
             user: req.uid
         }
+
         const eventoActualizado = await Evento.findByIdAndUpdate(eventoId, nuevoEvento, { new: true });
+
         res.status(200).json({
             ok: true,
             msg: 'Evento actualizado.',
             evento: eventoActualizado
         });
+
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -69,13 +75,41 @@ const editarEvento = async (req, res = response) => {
 
 }
 
-const eliminarEvento = (req, res = response) => {
-    const { id } = req.body;
-    res.status(200).json({
-        ok: true,
-        msg: 'eliminarEvento',
-        id
-    });
+const eliminarEvento = async (req, res = response) => {
+    const eventoId = req.params.id;
+    try {
+        const evento = await Evento.findById(eventoId);
+
+        if (!evento) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Evento no encontrado.'
+            });
+        }
+
+        if (evento.user.toString() !== req.uid) {
+            return res.status(401).json({
+                ok: false,
+                msg: 'No tiene permisos para eliminar este evento.'
+            });
+        }
+
+        // Eliminar el evento
+        const eventoEliminado = await Evento.findByIdAndDelete(eventoId);
+
+        res.status(200).json({
+            ok: true,
+            msg: 'Evento eliminado.',
+            evento: eventoEliminado
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error interno del servidor.'
+        });
+    }
 }
 
 module.exports = {
